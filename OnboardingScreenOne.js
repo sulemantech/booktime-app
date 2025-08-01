@@ -8,30 +8,35 @@ import {
   Dimensions,
   StyleSheet,
 } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 const { height } = Dimensions.get('window');
 
-const OnboardingScreenOne = ({ navigation }) => {
+const OnboardingScreenOne = ({ navigation, goToNextPage }) => {
   const [childName, setChildName] = useState('');
   const isButtonEnabled = childName.trim().length > 0;
 
   const handleContinue = () => {
     if (isButtonEnabled) {
-      navigation.navigate('OnboardingTwo', { childName });
+      goToNextPage(); // passed as a prop from OnboardingCarousel
     }
   };
 
   const handleGesture = ({ nativeEvent }) => {
-    const { translationX, translationY } = nativeEvent;
-    if (translationX < -50 && Math.abs(translationY) < 50) {
+    const { translationX, translationY, state } = nativeEvent;
+
+    if (
+      state === State.END &&
+      translationX < -50 &&
+      Math.abs(translationY) < 50
+    ) {
       handleContinue();
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <PanGestureHandler onGestureEvent={handleGesture}>
+      <PanGestureHandler onHandlerStateChange={handleGesture}>
         <View style={styles.container}>
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>

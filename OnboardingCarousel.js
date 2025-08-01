@@ -8,41 +8,52 @@ import OnboardingScreenFour from './OnboardingScreenFour';
 const { width } = Dimensions.get('window');
 
 const screens = [
-  OnboardingScreenOne,
-  OnboardingScreenTwo,
-  OnboardingScreenThree,
-  OnboardingScreenFour,
+    OnboardingScreenOne,
+    OnboardingScreenTwo,
+    OnboardingScreenThree,
+    OnboardingScreenFour,
 ];
 
 export default function OnboardingCarousel({ navigation, route }) {
-  const flatListRef = useRef(null);
+    const flatListRef = useRef(null);
 
-  const goToNextPage = (index) => {
-    if (index < screens.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: index + 1 });
+    const goToNextPage = (currentIndex, targetIndex = null) => {
+    const nextIndex = targetIndex !== null ? targetIndex : currentIndex + 1;
+
+    if (nextIndex < screens.length) {
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     } else {
-      // Final onboarding step - navigate to main app or login
-      navigation.replace('LoginScreen'); // or your main screen
+        navigation.replace('LoginScreen'); // or your main screen
     }
-  };
+};
 
-  return (
-    <FlatList
-      ref={flatListRef}
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
-      data={screens}
-      keyExtractor={(_, index) => index.toString()}
-      renderItem={({ item: ScreenComponent, index }) => (
-        <View style={{ width }}>
-          <ScreenComponent
-            navigation={navigation}
-            route={route}
-            goToNextPage={() => goToNextPage(index)}
-          />
-        </View>
-      )}
-    />
-  );
+
+    return (
+        <FlatList
+            ref={flatListRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            data={screens}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={({ item: ScreenComponent, index }) => (
+                <View style={{ width }}>
+                    <ScreenComponent
+                        navigation={navigation}
+                        route={route}
+                        goToNextPage={(targetIndex = null) => goToNextPage(index, targetIndex)}
+                    />
+                </View>
+            )}
+            getItemLayout={(_, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+            })}
+            initialNumToRender={1}
+            windowSize={2}
+            removeClippedSubviews={true}
+        />
+
+    );
 }

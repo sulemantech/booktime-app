@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   View,
@@ -7,43 +7,41 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
-  PanResponder,
 } from 'react-native';
+import {
+  PanGestureHandler,
+  State,
+} from 'react-native-gesture-handler';
 
 const { width, height } = Dimensions.get('window');
 
-const OnboardingScreenTwo = ({ route, navigation }) => {
-  // Get the child's name from the previous screen's navigation params
+const OnboardingScreenTwo = ({ route, navigation, goToNextPage })  => {
   const { childName } = route.params || {};
-
   const [selectedAge, setSelectedAge] = useState(null);
   const isButtonEnabled = selectedAge !== null;
 
-  const handleContinue = () => {
-    // Save the selected age and navigate to the next screen.
-    // For this example, we'll navigate to the Home screen.
-    navigation.navigate('Home', { childName, childAge: selectedAge });
-  };
+ const handleContinue = () => {
+  if (goToNextPage && isButtonEnabled) {
+    goToNextPage(); // Let the FlatList move to next screen correctly
+  }
+};
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (evt, gestureState) => {
-        const { dx, dy } = gestureState;
-        // Check for a left swipe to go to the next screen
-        if (dx < -50 && Math.abs(dy) < 20) {
-          if (isButtonEnabled) {
-            handleContinue();
-          }
+  const onGestureEvent = ({ nativeEvent }) => {
+    const { translationX, translationY, state } = nativeEvent;
+
+    if (state === State.END) {
+      if (translationX < -50 && Math.abs(translationY) < 20) {
+        if (isButtonEnabled) {
+          handleContinue();
         }
-        // Check for a right swipe to go back to the previous screen
-        if (dx > 50 && Math.abs(dy) < 20) {
-            navigation.goBack();
+      }
+      if (translationX > 50 && Math.abs(translationY) < 20) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
         }
-      },
-    })
-  ).current;
+      }
+    }
+  };
 
   const ageCards = [
     {
@@ -58,7 +56,6 @@ const OnboardingScreenTwo = ({ route, navigation }) => {
       ages: 'Ages 4–6',
       image: require('./assets/preschooler.png'),
     },
-    // Add more cards here as needed for your design
     {
       id: 'child',
       title: 'Child',
@@ -75,52 +72,52 @@ const OnboardingScreenTwo = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container} {...panResponder.panHandlers}>
-        {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '75%' }]} />
-        </View>
-
-        {/* Main Content */}
-        <View style={styles.content}>
-          <Text style={styles.title}>
-            How old is {childName}?
-          </Text>
-          <Text style={styles.subtitle}>
-            We will personalize the experience for that age.
-          </Text>
-
-          {/* Age Selection Grid */}
-          <View style={styles.cardGrid}>
-            {ageCards.map((card) => (
-              <TouchableOpacity
-                key={card.id}
-                style={[
-                  styles.ageCard,
-                  selectedAge === card.id && styles.selectedCard,
-                ]}
-                onPress={() => setSelectedAge(card.id)}
-              >
-                <Image source={card.image} style={styles.cardImage} />
-                <Text style={styles.cardTitle}>{card.title}</Text>
-                <Text style={styles.cardAges}>{card.ages}</Text>
-              </TouchableOpacity>
-            ))}
+      <PanGestureHandler onHandlerStateChange={onGestureEvent}>
+        <View style={styles.container}>
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: '75%' }]} />
           </View>
-        </View>
 
-        {/* Continue Button */}
-        <TouchableOpacity
-          style={[
-            styles.continueButton,
-            !isButtonEnabled && styles.disabledButton,
-          ]}
-          onPress={handleContinue}
-          disabled={!isButtonEnabled}
-        >
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Main Content */}
+          <View style={styles.content}>
+            <Text style={styles.title}>How old is {childName}?</Text>
+            <Text style={styles.subtitle}>
+              We will personalize the experience for that age.
+            </Text>
+
+            {/* Age Selection Grid */}
+            <View style={styles.cardGrid}>
+              {ageCards.map((card) => (
+                <TouchableOpacity
+                  key={card.id}
+                  style={[
+                    styles.ageCard,
+                    selectedAge === card.id && styles.selectedCard,
+                  ]}
+                  onPress={() => setSelectedAge(card.id)}
+                >
+                  <Image source={card.image} style={styles.cardImage} />
+                  <Text style={styles.cardTitle}>{card.title}</Text>
+                  <Text style={styles.cardAges}>{card.ages}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Continue Button */}
+          <TouchableOpacity
+            style={[
+              styles.continueButton,
+              !isButtonEnabled && styles.disabledButton,
+            ]}
+            onPress={handleContinue}
+            disabled={!isButtonEnabled}
+          >
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      </PanGestureHandler>
     </SafeAreaView>
   );
 };
@@ -136,7 +133,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: height * 0.05,
   },
-  // Progress Bar Styles
   progressBarContainer: {
     height: 10,
     backgroundColor: '#E0E0E0',
@@ -148,7 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F08C4B',
     borderRadius: 5,
   },
-  // Main Content Styles
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -167,7 +162,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  // Age Selection Card Grid
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -176,7 +170,7 @@ const styles = StyleSheet.create({
     width: width - 40,
   },
   ageCard: {
-    width: (width - 60) / 2, // 20 padding on each side, 20 in between
+    width: (width - 60) / 2,
     height: (width - 60) / 2,
     backgroundColor: 'white',
     borderRadius: 15,
@@ -210,7 +204,6 @@ const styles = StyleSheet.create({
     color: '#8A8696',
     marginTop: 2,
   },
-  // Button Styles
   continueButton: {
     height: 50,
     backgroundColor: '#F08C4B',
