@@ -23,7 +23,7 @@ export default function OnboardingCarousel({ navigation, route }) {
     if (nextIndex < screens.length) {
         flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     } else {
-        navigation.replace('LoginScreen'); // or your main screen
+        navigation.replace('HomeScreen'); // or your main screen
     }
 };
 

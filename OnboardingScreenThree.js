@@ -12,7 +12,7 @@ import {
 
 const { width, height } = Dimensions.get('window');
 
-const OnboardingScreenThree = ({ route, navigation }) => {
+const OnboardingScreenThree = ({ route, navigation,goToNextPage  }) => {
     // Get the child's name from the previous screen's navigation params
     const { childName, childAge } = route.params || {};
 
@@ -21,13 +21,14 @@ const OnboardingScreenThree = ({ route, navigation }) => {
     const isButtonEnabled = selectedInterests.length > 0;
 
     const handleToggleInterest = (interestId) => {
+        console.log('Selected:', selectedInterests);
         // If the interest is already selected, remove it
         if (selectedInterests.includes(interestId)) {
-            setSelectedInterests(selectedInterests.filter(id => id !== interestId));
+            setSelectedInterests(prev => prev.filter(id => id !== interestId));
         } else {
             // If less than 3 interests are selected, add the new one
             if (selectedInterests.length < 3) {
-                setSelectedInterests([...selectedInterests, interestId]);
+               setSelectedInterests(prev => [...prev, interestId]);
             }
         }
     };
@@ -102,52 +103,54 @@ const OnboardingScreenThree = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.container} {...panResponder.panHandlers}>
-                {/* Progress Bar */}
-                <View style={styles.progressBarContainer}>
-                    <View style={[styles.progressBar, { width: '100%' }]} />
-                </View>
+  <View style={styles.container}>
+    {/* 🟡 Swipe logic moved behind UI */}
+    <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
 
-                {/* Main Content */}
-                <View style={styles.content}>
-                    <Text style={styles.title}>
-                        What are {childName}'s interests?
-                    </Text>
-                    <Text style={styles.subtitle}>
-                        Choose top 3 favorite topics to personalize your learning
-                    </Text>
+    {/* Progress Bar */}
+    <View style={styles.progressBarContainer}>
+      <View style={[styles.progressBar, { width: '100%' }]} />
+    </View>
 
-                    {/* Interests Selection Grid */}
-                    <View style={styles.cardGrid}>
-                        {interestCards.map((card) => (
-                            <TouchableOpacity
-                                key={card.id}
-                                style={[
-                                    styles.interestCard,
-                                    selectedInterests.includes(card.id) && styles.selectedCard,
-                                ]}
-                                onPress={() => handleToggleInterest(card.id)}
-                            >
-                                <Image source={{ uri: card.image }} style={styles.cardImage} />
-                                <Text style={styles.cardTitle}>{card.title}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
+    {/* Main Content */}
+    <View style={styles.content}>
+      <Text style={styles.title}>What are {childName}'s interests?</Text>
+      <Text style={styles.subtitle}>
+        Choose top 3 favorite topics to personalize your learning
+      </Text>
 
-                {/* Continue Button */}
-                <TouchableOpacity
-                    style={[
-                        styles.continueButton,
-                        !isButtonEnabled && styles.disabledButton,
-                    ]}
-                    onPress={handleContinue}
-                    disabled={!isButtonEnabled}
-                >
-                    <Text style={styles.buttonText}>Continue</Text>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+      {/* Interests Grid */}
+      <View style={styles.cardGrid}>
+        {interestCards.map((card) => (
+          <TouchableOpacity
+            key={card.id}
+            style={[
+              styles.interestCard,
+              selectedInterests.includes(card.id) && styles.selectedCard,
+            ]}
+            onPress={() => handleToggleInterest(card.id)}
+          >
+            <Image source={{ uri: card.image }} style={styles.cardImage} />
+            <Text style={styles.cardTitle}>{card.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+
+    {/* Continue Button */}
+    <TouchableOpacity
+      style={[
+        styles.continueButton,
+        !isButtonEnabled && styles.disabledButton,
+      ]}
+      onPress={handleContinue}
+      disabled={!isButtonEnabled}
+    >
+      <Text style={styles.buttonText}>Continue</Text>
+    </TouchableOpacity>
+  </View>
+</SafeAreaView>
+
     );
 };
 
@@ -202,24 +205,32 @@ const styles = StyleSheet.create({
         width: width - 40,
     },
     interestCard: {
-        width: (width - 60) / 3, // 20 padding on each side, 20 in between
-        height: (width - 60) / 3 + 30, // Adjusted height for text
-        backgroundColor: 'white',
-        borderRadius: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-        padding: 10,
-    },
-    selectedCard: {
-        borderWidth: 2,
-        borderColor: '#F08C4B',
-    },
+    width: (width - 60) / 3,
+    height: (width - 60) / 3 + 30,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 }, // reset offset
+    shadowOpacity: 0, // no shadow when unselected
+    shadowRadius: 0,
+    elevation: 0, // Android shadow removed
+    padding: 10,
+},
+   selectedCard: {
+    borderWidth: 2,
+    borderColor: '#F08C4B',
+    backgroundColor: '#FFF1E6',
+    transform: [{ scale: 1.05 }],
+    shadowColor: '#F08C4B',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 4,
+},
+
     cardImage: {
         width: 60,
         height: 60,

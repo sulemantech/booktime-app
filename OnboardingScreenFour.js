@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     SafeAreaView,
     View,
@@ -18,6 +18,10 @@ const OnboardingScreenFour = ({ route, navigation }) => {
 
     const isButtonEnabled = selectedAvatar !== null;
 
+    useEffect(() => {
+        console.log('Selected Avatar:', selectedAvatar);
+    }, [selectedAvatar]);
+
     const handleContinue = () => {
         navigation.replace('Home', {
             childName,
@@ -28,21 +32,24 @@ const OnboardingScreenFour = ({ route, navigation }) => {
     };
 
     const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: () => true,
-            onPanResponderRelease: (_, gestureState) => {
-                const { dx, dy } = gestureState;
-                if (dx < -50 && Math.abs(dy) < 20 && isButtonEnabled) {
-                    handleContinue();
-                } else if (dx > 50 && Math.abs(dy) < 20) {
-                    if (navigation.canGoBack()) {
-                        navigation.goBack();
-                    }
-                }
-            },
-        })
-    ).current;
+  PanResponder.create({
+    onStartShouldSetPanResponder: (_, gestureState) => false,
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dx) > 50 && Math.abs(gestureState.dy) < 20;
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      const { dx, dy } = gestureState;
+      if (dx < -50 && Math.abs(dy) < 20 && isButtonEnabled) {
+        handleContinue();
+      } else if (dx > 50 && Math.abs(dy) < 20) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+      }
+    },
+  })
+).current;
+
 
     const avatarCards = [
         { id: 'avatar1', image: 'https://placehold.co/60x60/F08C4B/FFFFFF?text=A1' },
@@ -58,48 +65,51 @@ const OnboardingScreenFour = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.container} {...panResponder.panHandlers}>
-                {/* Progress Bar */}
-                <View style={styles.progressBarContainer}>
-                    <View style={[styles.progressBar, { width: '100%' }]} />
-                </View>
+  <View style={styles.container}>
+    {/* No pan handlers here anymore */}
+    <View style={styles.progressBarContainer}>
+      <View style={[styles.progressBar, { width: '100%' }]} />
+    </View>
 
-                {/* Main Content */}
-                <View style={styles.content}>
-                    <Text style={styles.title}>Choose an avatar for {childName}</Text>
-                    <Text style={styles.subtitle}>
-                        Choose a fun character to start your journey!
-                    </Text>
+    <View style={styles.content}>
+      <Text style={styles.title}>Choose an avatar for {childName}</Text>
+      <Text style={styles.subtitle}>Choose a fun character to start your journey!</Text>
 
-                    <View style={styles.cardGrid}>
-                        {avatarCards.map((card) => (
-                            <TouchableOpacity
-                                key={card.id}
-                                style={[
-                                    styles.avatarCard,
-                                    selectedAvatar === card.id && styles.selectedCard,
-                                ]}
-                                onPress={() => setSelectedAvatar(card.id)}
-                            >
-                                <Image source={{ uri: card.image }} style={styles.cardImage} />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
+      {/* Avatar Grid — must NOT have panHandlers */}
+      <View style={styles.cardGrid}>
+        {avatarCards.map((card) => (
+          <TouchableOpacity
+            key={card.id}
+            style={[
+              styles.avatarCard,
+              selectedAvatar === card.id && styles.selectedCard,
+            ]}
+            onPress={() =>
+              setSelectedAvatar((prev) => (prev === card.id ? null : card.id))
+            }
+          >
+            <Image source={{ uri: card.image }} style={styles.cardImage} />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
 
-                {/* Continue Button */}
-                <TouchableOpacity
-                    style={[
-                        styles.continueButton,
-                        !isButtonEnabled && styles.disabledButton,
-                    ]}
-                    onPress={handleContinue}
-                    disabled={!isButtonEnabled}
-                >
-                    <Text style={styles.buttonText}>Continue</Text>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+    {/* Only this wrapper has panHandlers */}
+    <View {...panResponder.panHandlers}>
+      <TouchableOpacity
+        style={[
+          styles.continueButton,
+          !isButtonEnabled && styles.disabledButton,
+        ]}
+        onPress={handleContinue}
+        disabled={!isButtonEnabled}
+      >
+        <Text style={styles.buttonText}>Continue</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</SafeAreaView>
+
     );
 };
 
@@ -152,23 +162,30 @@ const styles = StyleSheet.create({
         width: width - 40,
     },
     avatarCard: {
-        width: (width - 80) / 3,
-        height: (width - 80) / 3,
-        backgroundColor: 'white',
-        borderRadius: 100,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-        marginHorizontal: 10,
-    },
+  width: (width - 80) / 3,
+  height: (width - 80) / 3,
+  backgroundColor: 'white',
+  borderRadius: 100,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: 20,
+  marginHorizontal: 10,
+
+  // ✅ remove shadows here if needed, move to selectedCard
+  // elevation: 2, 
+  // shadowOpacity: 0.1,
+  // shadowRadius: 4,
+},
+
     selectedCard: {
         borderWidth: 3,
         borderColor: '#F08C4B',
+        backgroundColor: '#FFF1E6',
+        elevation: 4,
+        shadowColor: '#F08C4B',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
     },
     cardImage: {
         width: 60,
