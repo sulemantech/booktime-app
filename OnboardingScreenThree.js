@@ -9,35 +9,29 @@ import {
     Image,
     PanResponder,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
-const OnboardingScreenThree = ({ route, navigation,goToNextPage  }) => {
-    // Get the child's name from the previous screen's navigation params
+const OnboardingScreenThree = ({ route, navigation, goToNextPage }) => {
     const { childName, childAge } = route.params || {};
-
-    // State to hold the selected interests
     const [selectedInterests, setSelectedInterests] = useState([]);
     const isButtonEnabled = selectedInterests.length > 0;
+    const insets = useSafeAreaInsets(); // ✅ Get safe area insets
 
     const handleToggleInterest = (interestId) => {
-        console.log('Selected:', selectedInterests);
-        // If the interest is already selected, remove it
         if (selectedInterests.includes(interestId)) {
             setSelectedInterests(prev => prev.filter(id => id !== interestId));
-        } else {
-            // If less than 3 interests are selected, add the new one
-            if (selectedInterests.length < 3) {
-               setSelectedInterests(prev => [...prev, interestId]);
-            }
+        } else if (selectedInterests.length < 3) {
+            setSelectedInterests(prev => [...prev, interestId]);
         }
     };
 
     const handleContinue = () => {
-  if (goToNextPage) {
-    goToNextPage(3); // Assuming screen 4 is index 3 in FlatList
-  }
-};
+        if (goToNextPage) {
+            goToNextPage(3);
+        }
+    };
 
     const panResponder = useRef(
         PanResponder.create({
@@ -45,112 +39,79 @@ const OnboardingScreenThree = ({ route, navigation,goToNextPage  }) => {
             onMoveShouldSetPanResponder: () => true,
             onPanResponderRelease: (evt, gestureState) => {
                 const { dx, dy } = gestureState;
-                // Check for a left swipe to go to the next screen
-                if (dx < -50 && Math.abs(dy) < 20) {
-                    if (isButtonEnabled) {
-                        handleContinue();
-                    }
+                if (dx < -50 && Math.abs(dy) < 20 && isButtonEnabled) {
+                    handleContinue();
                 }
-                // Check for a right swipe to go back
-                // if (dx > 50 && Math.abs(dy) < 20) {
-                //   navigation.goBack();
-                // }
-                if (dx > 50 && Math.abs(dy) < 20) {
-                    if (navigation.canGoBack()) {
-                        navigation.goBack();
-                    } else {
-                        // Optionally, do nothing or navigate somewhere else
-                        // navigation.replace('LoginScreen');
-                    }
+                if (dx > 50 && Math.abs(dy) < 20 && navigation.canGoBack()) {
+                    navigation.goBack();
                 }
             },
         })
     ).current;
 
-    // Data for the interest cards using placeholder images
     const interestCards = [
-        {
-            id: 'friends',
-            title: 'Friends',
-            image: 'https://placehold.co/60x60/8A8696/FFFFFF?text=Friends',
-        },
-        {
-            id: 'fairy-tales',
-            title: 'Fairy Tales',
-            image: 'https://placehold.co/60x60/F08C4B/FFFFFF?text=Fairy',
-        },
-        {
-            id: 'look-around',
-            title: 'Look Around',
-            image: 'https://placehold.co/60x60/3F3D56/FFFFFF?text=Look',
-        },
-        {
-            id: 'moving-machines',
-            title: 'Moving Machines',
-            image: 'https://placehold.co/60x60/F7F4EB/8A8696?text=Machines',
-        },
-        {
-            id: 'sleepy',
-            title: 'Sleepy',
-            image: 'https://placehold.co/60x60/F08C4B/FFFFFF?text=Sleepy',
-        },
-        {
-            id: 'dinosaurs',
-            title: 'Dinosaurs',
-            image: 'https://placehold.co/60x60/3F3D56/FFFFFF?text=Dino',
-        },
+        { id: 'friends', title: 'Friends', image: require('./assets/friends.png') },
+        { id: 'fairy-tales', title: 'Fairy Tales', image: require('./assets/fairy-tales.png') },
+        { id: 'look-around', title: 'Look Around', image: require('./assets/look-around.png') },
+        { id: 'moving-machines', title: 'Moving Machines', image: require('./assets/moving-machines.png') },
+        { id: 'sleepy', title: 'Sleepy', image: require('./assets/sleepy.png') },
+        { id: 'dinosaurs', title: 'Dinosaurs', image: require('./assets/dinosaurs.png') },
     ];
 
     return (
         <SafeAreaView style={styles.safeArea}>
-  <View style={styles.container}>
-    {/* 🟡 Swipe logic moved behind UI */}
-    <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
+            <View style={styles.container}>
+                <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
 
-    {/* Progress Bar */}
-    <View style={styles.progressBarContainer}>
-      <View style={[styles.progressBar, { width: '100%' }]} />
-    </View>
+                {/* Progress Bar */}
+                <View style={styles.progressBarContainer}>
+                    <View style={[styles.progressBar, { width: '75%' }]} />
+                </View>
 
-    {/* Main Content */}
-    <View style={styles.content}>
-      <Text style={styles.title}>What are {childName}'s interests?</Text>
-      <Text style={styles.subtitle}>
-        Choose top 3 favorite topics to personalize your learning
-      </Text>
+                {/* Main Content */}
+                <View style={styles.content}>
+                    <Text style={styles.title}>What are {childName}'s interests?</Text>
+                    <Text style={styles.subtitle}>
+                        Choose top 3 favorite topics to personalize your learning
+                    </Text>
 
-      {/* Interests Grid */}
-      <View style={styles.cardGrid}>
-        {interestCards.map((card) => (
-          <TouchableOpacity
-            key={card.id}
-            style={[
-              styles.interestCard,
-              selectedInterests.includes(card.id) && styles.selectedCard,
-            ]}
-            onPress={() => handleToggleInterest(card.id)}
-          >
-            <Image source={{ uri: card.image }} style={styles.cardImage} />
-            <Text style={styles.cardTitle}>{card.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+                    <View style={styles.cardGrid}>
+                        {interestCards.map((card) => (
+                            <TouchableOpacity
+                                key={card.id}
+                                style={styles.interestCard}
+                                onPress={() => handleToggleInterest(card.id)}
+                            >
+                                <View
+                                    style={[
+                                        styles.cardImageWrapper,
+                                        selectedInterests.includes(card.id) && styles.selectedCard,
+                                    ]}
+                                >
+                                    <Image source={card.image} style={styles.cardImage} />
+                                </View>
+                                <Text style={styles.cardTitle}>{card.title}</Text>
+                            </TouchableOpacity>
 
-    {/* Continue Button */}
-    <TouchableOpacity
-      style={[
-        styles.continueButton,
-        !isButtonEnabled && styles.disabledButton,
-      ]}
-      onPress={handleContinue}
-      disabled={!isButtonEnabled}
-    >
-      <Text style={styles.buttonText}>Continue</Text>
-    </TouchableOpacity>
-  </View>
-</SafeAreaView>
+                        ))}
+                    </View>
+                </View>
 
+                {/* Continue Button with safe area padding */}
+                <View style={{ paddingBottom: insets.bottom + 12 }}>
+                    <TouchableOpacity
+                        style={[
+                            styles.continueButton,
+                            !isButtonEnabled && styles.disabledButton,
+                        ]}
+                        onPress={handleContinue}
+                        disabled={!isButtonEnabled}
+                    >
+                        <Text style={styles.buttonText}>Continue</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </SafeAreaView>
     );
 };
 
@@ -163,9 +124,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
         justifyContent: 'space-between',
-        paddingBottom: height * 0.05,
     },
-    // Progress Bar Styles
     progressBarContainer: {
         height: 10,
         backgroundColor: '#E0E0E0',
@@ -177,7 +136,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#F08C4B',
         borderRadius: 5,
     },
-    // Main Content Styles
     content: {
         flex: 1,
         justifyContent: 'center',
@@ -196,7 +154,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 20,
     },
-    // Interests Selection Card Grid
     cardGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -204,46 +161,47 @@ const styles = StyleSheet.create({
         marginTop: 20,
         width: width - 40,
     },
+
     interestCard: {
-    width: (width - 60) / 3,
-    height: (width - 60) / 3 + 30,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 }, // reset offset
-    shadowOpacity: 0, // no shadow when unselected
-    shadowRadius: 0,
-    elevation: 0, // Android shadow removed
-    padding: 10,
-},
-   selectedCard: {
-    borderWidth: 2,
-    borderColor: '#F08C4B',
-    backgroundColor: '#FFF1E6',
-    transform: [{ scale: 1.05 }],
-    shadowColor: '#F08C4B',
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 4,
-},
+        width: (width - 80) / 3,
+        marginBottom: 25,
+        alignItems: 'center',
+    },
+
+    selectedCard: {
+        transform: [{ scale: 1.05 }],
+        borderColor: '#F08C4B',
+        borderWidth: 3,
+        borderRadius: 24,
+    },
+
+    cardImageWrapper: {
+        width: 100,
+        height: 100,
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginBottom: 8,
+        backgroundColor: '#fff',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
 
     cardImage: {
-        width: 60,
-        height: 60,
-        resizeMode: 'contain',
-        borderRadius: 10,
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+        borderRadius: 20,
     },
+
     cardTitle: {
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: '600',
         color: '#3F3D56',
-        marginTop: 5,
+        textAlign: 'center',
     },
-    // Button Styles
     continueButton: {
         height: 50,
         backgroundColor: '#F08C4B',

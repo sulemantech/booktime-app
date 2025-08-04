@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, FlatList, TouchableOpacity, TextInput } from 'react-native';
-
-// Combined placeholder data for searching
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+// 📚 All combined books
 const allBooksData = [
   { id: '1', title: 'The Little Bear Who Lost His Roar', author: 'PENNY DALE', image: 'https://picsum.photos/id/10/200/300' },
   { id: '2', title: 'The Magical Treehouse Adventure', author: 'JAMES L. REID', image: 'https://picsum.photos/id/11/200/300' },
@@ -22,9 +32,12 @@ const allBooksData = [
 ];
 
 const BookCard = ({ item, navigation }) => (
-  <TouchableOpacity 
+  <TouchableOpacity
     style={styles.bookCard}
-    onPress={() => navigation.navigate('BookDetail', { bookTitle: item.title, bookImage: item.image })}
+    onPress={() => navigation.navigate('BookDetail', {
+      bookTitle: item.title,
+      bookImage: item.image,
+    })}
   >
     <Image source={{ uri: item.image }} style={styles.bookImage} resizeMode="cover" />
     <View style={styles.bookInfo}>
@@ -35,19 +48,19 @@ const BookCard = ({ item, navigation }) => (
 );
 
 const SearchScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Filter the books based on the search query
-  const filteredBooks = allBooksData.filter(book => 
-    book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+
+  const filteredBooks = allBooksData.filter(book =>
+    book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     book.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top + 20 }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{"<"}</Text>
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <TextInput
           style={styles.searchBar}
@@ -57,7 +70,7 @@ const SearchScreen = ({ navigation }) => {
           onChangeText={setSearchQuery}
         />
       </View>
-      
+
       <FlatList
         data={filteredBooks}
         renderItem={({ item }) => <BookCard item={item} navigation={navigation} />}
@@ -82,12 +95,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   backButton: {
-    paddingRight: 15,
+    paddingRight: 10,
   },
   backButtonText: {
     fontSize: 24,
@@ -133,6 +147,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 5,
+    color: '#333',
   },
   bookAuthor: {
     fontSize: 12,
@@ -142,7 +157,6 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50,
   },

@@ -7,18 +7,22 @@ import {
   TouchableOpacity,
   Dimensions,
   StyleSheet,
+  Image, // Import Image
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 const { height } = Dimensions.get('window');
 
 const OnboardingScreenOne = ({ navigation, goToNextPage }) => {
   const [childName, setChildName] = useState('');
+  const insets = useSafeAreaInsets();
+
   const isButtonEnabled = childName.trim().length > 0;
 
   const handleContinue = () => {
-    if (isButtonEnabled) {
-      goToNextPage(); // passed as a prop from OnboardingCarousel
+    if (goToNextPage && isButtonEnabled) {
+      goToNextPage(null, { childName });
     }
   };
 
@@ -37,11 +41,18 @@ const OnboardingScreenOne = ({ navigation, goToNextPage }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <PanGestureHandler onHandlerStateChange={handleGesture}>
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: '50%' }]} />
           </View>
+
+          {/* Single Top Image (Moon/Cloud and Star combined) */}
+          <Image
+            source={require('./assets/top_combined.png')} // Replace with your combined top image path
+            style={styles.topCombinedImage}
+            resizeMode="contain"
+          />
 
           {/* Main Content */}
           <View style={styles.content}>
@@ -57,6 +68,14 @@ const OnboardingScreenOne = ({ navigation, goToNextPage }) => {
               onChangeText={setChildName}
             />
           </View>
+
+          {/* Single Bottom Image (Bunny, Butterfly, Cat combined) */}
+          <Image
+            source={require('./assets/bottom_combined_image.png')} // Replace with your combined bottom image path
+            style={styles.bottomCombinedImage}
+            resizeMode="contain"
+          />
+
 
           {/* Continue Button */}
           <TouchableOpacity
@@ -84,7 +103,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'space-between',
-    paddingBottom: height * 0.05,
   },
   progressBarContainer: {
     height: 10,
@@ -97,9 +115,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F08C4B',
     borderRadius: 5,
   },
+  topCombinedImage: {
+    width: '100%', // Take full width
+    height: 100, // Adjust height as needed to fit the combined image
+    marginTop: 20,
+    alignSelf: 'center', // Center the image horizontally
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
+    paddingTop: 20, // Add some top padding if needed to separate from the top image
   },
   title: {
     fontSize: 28,
@@ -110,7 +135,8 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    color: '#8A8696',
+    fontWeight:600,
+    color: '#18171dff',
     marginBottom: 5,
   },
   textInput: {
@@ -120,6 +146,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 18,
     color: '#3F3D56',
+  },
+  bottomCombinedImage: {
+    width: '120%', // Adjust width to allow parts to extend beyond the screen if needed
+    height: 150, // Adjust height as needed to fit the combined image
+    alignSelf: 'center', // Center the image horizontally
+    marginBottom: 20, // Space above the button
+    // You might need to add negative margins or absolute positioning here
+    // if the combined image doesn't align perfectly with `width: '100%'`
+    // and `alignSelf: 'center'`
+    // For example:
+    // marginLeft: -30, // Adjust to nudge left
   },
   continueButton: {
     height: 50,

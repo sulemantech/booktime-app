@@ -8,23 +8,25 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
-import {
-  PanGestureHandler,
-  State,
-} from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const OnboardingScreenTwo = ({ route, navigation, goToNextPage })  => {
-  const { childName } = route.params || {};
+// const OnboardingScreenTwo = ({ route, navigation, goToNextPage }) => {
+const OnboardingScreenTwo = ({ formData, navigation, goToNextPage }) => {
+//   const { childName } = route.params || {};
+const childName = formData?.childName || 'your child';
   const [selectedAge, setSelectedAge] = useState(null);
   const isButtonEnabled = selectedAge !== null;
 
- const handleContinue = () => {
-  if (goToNextPage && isButtonEnabled) {
-    goToNextPage(); // Let the FlatList move to next screen correctly
-  }
-};
+  const insets = useSafeAreaInsets();
+
+  const handleContinue = () => {
+    if (goToNextPage && isButtonEnabled) {
+      goToNextPage();
+    }
+  };
 
   const onGestureEvent = ({ nativeEvent }) => {
     const { translationX, translationY, state } = nativeEvent;
@@ -73,7 +75,7 @@ const OnboardingScreenTwo = ({ route, navigation, goToNextPage })  => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <PanGestureHandler onHandlerStateChange={onGestureEvent}>
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: '75%' }]} />
@@ -131,7 +133,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'space-between',
-    paddingBottom: height * 0.05,
   },
   progressBarContainer: {
     height: 10,

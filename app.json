@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "Book Time",
+    "name": "BookTime",
+    "jsEngine": "hermes",
     "slug": "snack-dee9ccad-c37e-4126-afd3-32b5ac366dfa",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,13 +18,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/book_time_icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.snackdee9ccadc37e4126afd332b5ac366dfa"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "248354a3-2c7e-4e4a-8b1a-2ed3db39f6f2"
+      }
     }
   }
 }

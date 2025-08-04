@@ -9,18 +9,21 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
 
 const BookDetailScreen = ({ route, navigation }) => {
   const { bookTitle, bookImage } = route.params;
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={styles.fullScreenContainer}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+    <SafeAreaView style={[styles.fullScreenContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <ScrollView contentContainerStyle={[styles.scrollViewContent]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>←</Text>
+            <Ionicons name="arrow-back" size={28} color="#333" />
           </TouchableOpacity>
         </View>
 
@@ -46,7 +49,6 @@ const BookDetailScreen = ({ route, navigation }) => {
           </View>
 
           <View style={styles.actionButtonsRow}>
-            {/* The new "Read Now" button */}
             <TouchableOpacity 
               style={styles.readButton} 
               onPress={() => navigation.navigate('StoryScreen')}
@@ -93,15 +95,11 @@ const styles = StyleSheet.create({
   header: {
     width: '100%',
     alignItems: 'flex-start',
-    paddingBottom: 20,
-  },
-  backButton: {
-    fontSize: 30,
-    color: '#333',
+    marginBottom: 20,
   },
   bookCover: {
-    width: width * 0.7,
-    height: width * 0.7 * 1.25,
+    width: width * 0.8,
+    height: width * 0.8 * 1.25,
     borderRadius: 12,
     marginBottom: 20,
   },
@@ -148,7 +146,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  // The new style for the "Read Now" button
   readButton: {
     backgroundColor: '#FF6347',
     borderRadius: 20,

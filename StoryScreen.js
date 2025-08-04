@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -9,12 +9,15 @@ import {
   StyleSheet,
   Switch,
   Dimensions,
+  Platform,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import * as Speech from 'expo-speech';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height, width } = Dimensions.get('window');
 
 // --- EXPANDED STORY DATA ---
-// This is an extended placeholder story to demonstrate the swiping functionality better.
 const storyPages = [
   {
     id: '1',
@@ -49,19 +52,45 @@ const storyPages = [
 ];
 
 const StoryScreen = ({ navigation }) => {
-  // --- STATE MANAGEMENT ---
+  const insets = useSafeAreaInsets();
+
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState(16);
+  const [bottomBarHeight, setBottomBarHeight] = useState(70);
+  const [topBarHeight, setTopBarHeight] = useState(60);
+  const [isReading, setIsReading] = useState(false);
 
-  // useRef to link the scroll view to the navigation buttons
+
   const scrollViewRef = useRef(null);
   const totalPages = storyPages.length;
 
-  // --- NAVIGATION LOGIC ---
+  const handleReadAloud = () => {
+    const currentText = storyPages[currentPageIndex].text;
+
+    if (isReading) {
+      Speech.stop();
+      setIsReading(false);
+    } else {
+      Speech.speak(currentText, {
+        rate: 0.85,
+        onDone: () => setIsReading(false),
+        onStopped: () => setIsReading(false),
+      });
+      setIsReading(true);
+    }
+  };
+
+
+  //Tts.addEventListener('tts-finish', () => setIsReading(false));
+  //Tts.addEventListener('tts-cancel', () => setIsReading(false));
+
   const handleNextPage = () => {
     if (currentPageIndex < totalPages - 1) {
+      Speech.stop(); // 👈 stop audio
+      setIsReading(false); // 👈 update state
+
       const nextIndex = currentPageIndex + 1;
       setCurrentPageIndex(nextIndex);
       scrollViewRef.current.scrollTo({ x: nextIndex * width, animated: true });
@@ -70,13 +99,15 @@ const StoryScreen = ({ navigation }) => {
 
   const handlePreviousPage = () => {
     if (currentPageIndex > 0) {
+      Speech.stop(); // 👈 stop audio
+      setIsReading(false); // 👈 update state
+
       const prevIndex = currentPageIndex - 1;
       setCurrentPageIndex(prevIndex);
       scrollViewRef.current.scrollTo({ x: prevIndex * width, animated: true });
     }
   };
 
-  // This function keeps the page number in sync with the swipe gesture
   const onScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const pageIndex = Math.round(contentOffsetX / width);
@@ -85,7 +116,6 @@ const StoryScreen = ({ navigation }) => {
     }
   };
 
-  // --- SETTINGS LOGIC ---
   const toggleDarkMode = () => {
     setIsDarkMode(previousState => !previousState);
   };
@@ -98,24 +128,55 @@ const StoryScreen = ({ navigation }) => {
     setFontSize(prevSize => Math.max(12, prevSize - 2));
   };
 
-  // --- CONDITIONAL STYLES ---
+  const onBottomBarLayout = (event) => {
+    const { height } = event.nativeEvent.layout;
+    const intrinsicHeight = height - insets.bottom;
+    if (bottomBarHeight !== intrinsicHeight) {
+      setBottomBarHeight(intrinsicHeight);
+    }
+  };
+
+  const onTopBarLayout = (event) => {
+    const { height } = event.nativeEvent.layout;
+    const intrinsicHeight = height - insets.top;
+    if (topBarHeight !== intrinsicHeight) {
+      setTopBarHeight(intrinsicHeight);
+    }
+  };
+
   const containerStyle = isDarkMode ? styles.darkContainer : styles.lightContainer;
   const textStyle = { fontSize: fontSize, color: isDarkMode ? '#E0E0E0' : '#333' };
   const settingsContentStyle = { backgroundColor: isDarkMode ? '#333' : 'white' };
   const settingsTextStyle = { color: isDarkMode ? 'white' : 'black' };
   const settingsValueStyle = { color: isDarkMode ? '#E0E0E0' : '#333' };
 
+  const currentTopBarHeight = topBarHeight > 0 ? topBarHeight : 60;
+  const currentBottomBarHeight = bottomBarHeight > 0 ? bottomBarHeight : 70;
+  const availableContentHeight = height - currentTopBarHeight - currentBottomBarHeight;
+  const storyImageCalculatedHeight = availableContentHeight * 0.55;
+  const settingsOverlayHeight = height * 0.4;
+  const settingsOverlayTop = height - (currentBottomBarHeight + insets.bottom) - settingsOverlayHeight;
+
+
   return (
     <SafeAreaView style={[styles.safeArea, containerStyle]}>
-      {/* Top Bar for title and close button */}
-      <View style={styles.topBar}>
-        <Text style={[styles.storyTitle, isDarkMode && { color: 'white' }]}>Story Screen</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>✕</Text>
+      <View style={[styles.topBar, { paddingTop: insets.top }]} onLayout={onTopBarLayout}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back-outline" size={26} color={isDarkMode ? 'white' : '#333'} />
         </TouchableOpacity>
+
+        <Text style={[styles.storyTitle, isDarkMode && { color: 'white' }]}>
+          Story Screen
+        </Text>
+
+        <View style={{ width: 26 }} />
       </View>
 
-      {/* Main Content Area - Horizontal ScrollView for Swiping */}
+
+
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -126,10 +187,10 @@ const StoryScreen = ({ navigation }) => {
         style={styles.horizontalScrollView}
       >
         {storyPages.map((page, index) => (
-          <View key={page.id} style={styles.pageContent}>
+          <View key={page.id} style={[styles.pageContent, { height: availableContentHeight }]}>
             <Image
               source={{ uri: page.image }}
-              style={styles.storyImage}
+              style={[styles.storyImage, { height: storyImageCalculatedHeight }]}
               resizeMode="cover"
             />
             <ScrollView contentContainerStyle={styles.textContainer}>
@@ -139,35 +200,68 @@ const StoryScreen = ({ navigation }) => {
         ))}
       </ScrollView>
 
-      {/* Bottom Control Bar for navigation and settings */}
-      <View style={[styles.bottomBar, isDarkMode && styles.darkBottomBar]}>
+      <View
+        style={[styles.bottomBar, isDarkMode && styles.darkBottomBar, { paddingBottom: insets.bottom }]}
+        onLayout={onBottomBarLayout}
+      >
         <View style={styles.leftControls}>
-          <TouchableOpacity onPress={() => setShowSettings(true)}>
+          <TouchableOpacity onPress={() => setShowSettings(true)} style={styles.controlButton}>
             <Text style={[styles.icon, isDarkMode && { color: 'white' }]}>⚙️</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleReadAloud} style={styles.controlButton}>
             <Text style={[styles.icon, isDarkMode && { color: 'white' }]}>▶</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.centerControls}>
-          <TouchableOpacity onPress={handlePreviousPage} disabled={currentPageIndex === 0}>
-            <Text style={[styles.navButton, currentPageIndex === 0 && styles.disabledNavButton]}>{"<"}</Text>
+        <View style={[
+          styles.centerControls,
+          { backgroundColor: isDarkMode ? '#3A3A3A' : '#F5F5F5' }
+        ]}>
+          <TouchableOpacity
+            onPress={handlePreviousPage}
+            disabled={currentPageIndex === 0}
+            style={styles.navButtonWrapper}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={26}
+              color={currentPageIndex === 0 ? '#C0C0C0' : '#FF6347'}
+            />
           </TouchableOpacity>
-          <Text style={[styles.pageNumber, isDarkMode && { color: '#B0B0B0' }]}>{`0${currentPageIndex + 1}/0${totalPages}`}</Text>
-          <TouchableOpacity onPress={handleNextPage} disabled={currentPageIndex === totalPages - 1}>
-            <Text style={[styles.navButton, currentPageIndex === totalPages - 1 && styles.disabledNavButton]}>{">"}</Text>
+
+          <Text style={[
+            styles.pageNumber,
+            { color: isDarkMode ? '#B0B0B0' : '#666' }
+          ]}>
+            {`${currentPageIndex + 1}/${totalPages}`}
+          </Text>
+
+          <TouchableOpacity
+            onPress={handleNextPage}
+            disabled={currentPageIndex === totalPages - 1}
+            style={styles.navButtonWrapper}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={26}
+              color={currentPageIndex === totalPages - 1 ? '#C0C0C0' : '#FF6347'}
+            />
           </TouchableOpacity>
         </View>
+
+
+
         <View style={styles.rightControls}>
-          <TouchableOpacity>
-            <Text style={[styles.icon, isDarkMode && { color: 'white' }]}>🔊</Text>
+          <TouchableOpacity onPress={handleReadAloud} style={styles.controlButton}>
+            <Text style={[styles.icon, isDarkMode && { color: 'white' }]}>
+              {isReading ? '⏹' : '🔊'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Settings Modal - Renders as an overlay */}
       {showSettings && (
-        <View style={styles.settingsOverlay}>
+        <View style={[styles.settingsOverlay, { top: settingsOverlayTop }]}>
           <View style={[styles.settingsContent, settingsContentStyle]}>
             <View style={styles.settingsRow}>
               <TouchableOpacity onPress={decreaseFontSize}>
@@ -204,6 +298,27 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  topBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    position: 'relative',
+  },
+  backButton: {
+    padding: 10,
+    width: 40,
+    alignItems: 'flex-start',
+  },
+  storyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
+  placeholder: {
+    width: 40, // Matches backButton width to balance layout
+  },
   lightContainer: {
     backgroundColor: 'white',
   },
@@ -213,10 +328,10 @@ const styles = StyleSheet.create({
   // --- Top Bar Styles ---
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   storyTitle: {
     fontSize: 22,
@@ -238,11 +353,12 @@ const styles = StyleSheet.create({
     width: width,
     paddingHorizontal: 25,
     paddingBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   storyImage: {
     width: '100%',
-    height: height * 0.45, // Slightly larger image
-    borderRadius: 15, // Slightly more rounded corners
+    borderRadius: 15,
     marginBottom: 20,
   },
   textContainer: {
@@ -250,8 +366,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   storyText: {
-    lineHeight: 26, // Increased line height for readability
-    fontWeight: '400', // Regular weight for better readability
+    lineHeight: 26,
+    fontWeight: '400',
   },
   // --- Bottom Bar Styles ---
   bottomBar: {
@@ -259,56 +375,112 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    paddingVertical: 10,
+    borderTopWidth: 0,
     backgroundColor: 'white',
-  },
-  darkBottomBar: {
-    backgroundColor: '#1E1E1E',
-    borderTopColor: '#444',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
   },
   leftControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 80,
-    justifyContent: 'space-between',
+    gap: 10,
   },
   rightControls: {
-    width: 30,
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centerControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 25,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  icon: {
-    fontSize: 26,
-    color: '#555',
+    justifyContent: 'space-between',
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minWidth: 120,
+    alignSelf: 'center',
   },
   navButton: {
-    fontSize: 28,
+    fontSize: 24,
+    color: '#FF6347',
+    fontWeight: 'bold',
+  },
+
+  navButtonWrapper: {
+    padding: 4,
+  },
+  darkBottomBar: {
+    backgroundColor: '#282828',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 10,
+      },
+    }),
+  },
+  leftControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 0.2, // Allow left controls to take up some flexible space
+    justifyContent: 'flex-start', // Push items to the left
+  },
+  rightControls: {
+    flex: 0.1, // Allow right controls to take up less flexible space
+    alignItems: 'flex-end', // Push items to the right
+  },
+  centerControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 24,
+    paddingHorizontal: 18,   // wider horizontally
+    paddingVertical: 10,     // thicker vertically
+    minWidth: 140,           // wider overall
+    alignSelf: 'center',
+  },
+  controlButton: {
+    padding: 5,
+  },
+  icon: {
+    fontSize: 24,
+    color: '#555',
+  },
+  navButtonWrapper: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  navButton: {
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#FF6347',
-    paddingHorizontal: 12,
   },
   disabledNavButton: {
     color: '#C0C0C0',
   },
   pageNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#888',
-    paddingHorizontal: 10,
+    paddingHorizontal: 5, // Reduced padding
   },
   // --- Settings Modal Styles ---
   settingsOverlay: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     height: '40%',

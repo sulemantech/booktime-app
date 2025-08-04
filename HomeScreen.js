@@ -1,7 +1,7 @@
 import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, StyleSheet, Image, FlatList, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Placeholder data with more books for better visual presentation
 const bookData = [
   { id: '1', title: 'The Little Bear Who Lost His Roar', author: 'PENNY DALE', image: 'https://picsum.photos/id/10/200/300' },
   { id: '2', title: 'The Magical Treehouse Adventure', author: 'JAMES L. REID', image: 'https://picsum.photos/id/11/200/300' },
@@ -27,7 +27,6 @@ const tenInBedData = [
   { id: '5', title: 'Ten Brave Bears', author: 'PENNY DALE', image: 'https://picsum.photos/id/25/200/300' },
 ];
 
-// Reusable component for a single book item
 const BookItem = ({ title, author, image, navigation }) => (
   <TouchableOpacity
     style={styles.bookItem}
@@ -39,7 +38,6 @@ const BookItem = ({ title, author, image, navigation }) => (
   </TouchableOpacity>
 );
 
-// REVISED: Reusable component for a section header (e.g., "My Stories")
 const SectionHeader = ({ title, navigation }) => (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{title}</Text>
@@ -52,7 +50,6 @@ const SectionHeader = ({ title, navigation }) => (
   </View>
 );
 
-// Placeholder for header icons - Search icon is now a TouchableOpacity
 const HeaderIcon = ({ source, onPress }) => (
   <TouchableOpacity onPress={onPress} style={styles.iconContainer}>
     <Text style={styles.iconPlaceholder}>{source}</Text>
@@ -60,9 +57,11 @@ const HeaderIcon = ({ source, onPress }) => (
 );
 
 const HomeScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -72,12 +71,11 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.headerRight}>
             <HeaderIcon source="👑" />
             <HeaderIcon source="🌐" />
-            {/* Tapping this icon now navigates to the Search screen */}
             <HeaderIcon source="🔍" onPress={() => navigation.navigate('SearchScreen')} />
           </View>
         </View>
 
-        {/* My Stories Section */}
+        {/* Sections */}
         <SectionHeader title="My Stories" navigation={navigation} />
         <FlatList
           data={bookData}
@@ -88,7 +86,6 @@ const HomeScreen = ({ navigation }) => {
           style={styles.horizontalList}
         />
 
-        {/* Continue Reading Section */}
         <SectionHeader title="Continue Reading" navigation={navigation} />
         <FlatList
           data={miaData}
@@ -99,7 +96,6 @@ const HomeScreen = ({ navigation }) => {
           style={styles.horizontalList}
         />
 
-        {/* Read Again Section */}
         <SectionHeader title="Read Again" navigation={navigation} />
         <FlatList
           data={tenInBedData}
@@ -110,7 +106,6 @@ const HomeScreen = ({ navigation }) => {
           style={styles.horizontalList}
         />
 
-        {/* Friends and Feelings Section */}
         <SectionHeader title="Friends and Feelings" navigation={navigation} />
         <FlatList
           data={miaData}
@@ -121,7 +116,6 @@ const HomeScreen = ({ navigation }) => {
           style={styles.horizontalList}
         />
 
-        {/* We Can Count Section */}
         <SectionHeader title="We Can Count" navigation={navigation} />
         <FlatList
           data={tenInBedData}
@@ -132,7 +126,6 @@ const HomeScreen = ({ navigation }) => {
           style={styles.horizontalList}
         />
 
-        {/* Empty space at the bottom for better scrolling */}
         <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
@@ -144,16 +137,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  container: {
-    flex: 1,
-    padding: 15,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginHorizontal: 15,
     marginTop: 10,
+    marginBottom: 20,
   },
   headerLeft: {
     flexDirection: 'column',
@@ -170,8 +160,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: 100,
+    gap: 10,
   },
   iconContainer: {
     width: 24,
@@ -186,7 +175,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    paddingHorizontal: 15,
     marginBottom: 10,
   },
   sectionTitle: {
@@ -208,7 +197,8 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   horizontalList: {
-    marginBottom: 10,
+    paddingLeft: 15,
+    marginBottom: 20,
   },
   bookItem: {
     marginRight: 15,
@@ -218,6 +208,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 160,
     borderRadius: 8,
+    backgroundColor: '#ddd',
   },
   bookTitle: {
     marginTop: 8,
