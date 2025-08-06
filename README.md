@@ -1,36 +1,50 @@
-# Book Time App
-Cross-platform React Native app with offline book reading, custom reminders, and a playful UI designed for kids.
-# 📚 Book Time – Fun Reading App for Kids
+# Welcome to your Expo app 👋
 
-**Book Time** is a playful React Native app designed to help **children build strong reading habits** through a colorful, interactive, and easy-to-use interface. Whether it's storybooks or educational content, this app creates a joyful reading experience for kids.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
----
+## Get started
 
-## 🌟 Features
+1. Install dependencies
 
-- 🧒 **Kid-Friendly Interface** – Bright colors, large buttons, and simple navigation.
-- 📖 **Read Books** – Browse and read built-in storybooks or upload your own.
-- ⏰ **Book Time Reminders** – Gentle notifications to remind kids to read daily.
-- 🏆 **Streak Tracker** – Visual reading streaks and progress badges to encourage consistency.
-- 🎨 **Custom Themes** – Colorful modes and illustrations for a delightful experience.
-- 🔐 **No Login Required** – Safe and secure with no personal data collection.
+   ```bash
+   npm install
+   ```
 
----
+2. Start the app
 
-## 🛠 Built With
+   ```bash
+   npx expo start
+   ```
 
-- [React Native](https://reactnative.dev/)
-- [React Navigation](https://reactnavigation.org/)
-- AsyncStorage for local storage
-- Lottie animations for playful visuals
-- Optional: Expo for faster development
+In the output, you'll find options to open the app in a
 
----
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-## 🚀 Getting Started
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
 
 ```bash
-git clone https://github.com/your-username/book-time.git
-cd book-time
-npm install
-npx react-native run-android # or run-ios
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

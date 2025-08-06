@@ -1,18 +1,13 @@
 {
   "expo": {
     "name": "BookTime",
-    "jsEngine": "hermes",
-    "slug": "snack-dee9ccad-c37e-4126-afd3-32b5ac366dfa",
+    "slug": "booktime-new-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/book_time_icon.png",
+    "scheme": "booktimenewapp",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -22,15 +17,27 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.snackdee9ccadc37e4126afd332b5ac366dfa"
+      "package": "com.sulman.booktimenewapp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "248354a3-2c7e-4e4a-8b1a-2ed3db39f6f2"
-      }
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/book_time_icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
